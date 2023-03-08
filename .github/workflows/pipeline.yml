@@ -9,52 +9,46 @@ on:
     types: [opened, synchronize]
 
 jobs:
-#   simple_deployment_pipeline:
-#     runs-on: ubuntu-20.04
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-node@v3
-#         with:
-#           node-version: '16'
-#       - name: npm install
-#         run: npm install
-#       - name: lint
-#         run: npm run eslint
-#       - name: test
-#         run: npm run test
-#       - name: build
-#         run: npm run build
-#       - name: e2e tests
-#         uses: cypress-io/github-action@v4
-#         with:
-#           build: npm run build
-#           start: npm run start-prod
-#           wait-on: http://localhost:5001
-#       - name: flyctl actions
-#         if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
-#         uses: superfly/flyctl-actions/setup-flyctl@master
-#       - name: deploy
-#         if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
-#         run: flyctl deploy --remote-only
-#         env:
-#           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  simple_deployment_pipeline:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: npm install
+        run: npm install
+      - name: lint
+        run: npm run eslint
+      - name: test
+        run: npm run test
+      - name: build
+        run: npm run build
+      - name: e2e tests
+        uses: cypress-io/github-action@v4
+        with:
+          build: npm run build
+          start: npm run start-prod
+          wait-on: http://localhost:5001
+      - name: flyctl actions
+        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: deploy
+        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   tag_release:
-    # needs: [simple_deployment_pipeline]
+    needs: [simple_deployment_pipeline]
     runs-on: ubuntu-20.04
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: '0'
-
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.55.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: emiacerbi
-      # - uses: actions/checkout@v3
-      # - name: Bump version and push tag
-      #   uses: anothrNick/github-tag-action@eca2b69f9e2c24be7decccd0f15fdb1ea5906598
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     DEFAULT_BUMP: patch
+          DEFAULT_BUMP: patch
